@@ -5,13 +5,13 @@ import (
 	"strings"
 	"sync"
 
-	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
 	"github.com/envoyproxy/ratelimit/src/assert"
 	"github.com/envoyproxy/ratelimit/src/config"
 	"github.com/envoyproxy/ratelimit/src/limiter"
 	"github.com/envoyproxy/ratelimit/src/redis"
 	"github.com/lyft/goruntime/loader"
 	stats "github.com/lyft/gostats"
+	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 	logger "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
@@ -186,6 +186,91 @@ func (this *service) ShouldRateLimit(
 	response := this.shouldRateLimitWorker(ctx, request)
 	logger.Debugf("returning normal response")
 	return response, nil
+}
+
+func (this *service) ResetRateLimit(
+	ctx context.Context,
+	request *pb.RateLimitRequest) (finalResponse *pb.RateLimitResponse, finalError error) {
+
+	defer func() {
+		err := recover()
+		if err == nil {
+			return
+		}
+
+		logger.Debugf("caught error during call")
+		finalResponse = nil
+		switch t := err.(type) {
+		case redis.RedisError:
+			{
+				this.stats.shouldRateLimit.redisError.Inc()
+				finalError = t
+			}
+		case serviceError:
+			{
+				this.stats.shouldRateLimit.serviceError.Inc()
+				finalError = t
+			}
+		default:
+			panic(err)
+		}
+	}()
+
+	response := this.ResetRateLimitWorker(ctx, request)
+	logger.Debugf("returning normal response")
+	return response, nil
+}
+
+func (this *service) ResetRateLimitWorker(
+	ctx context.Context, request *pb.RateLimitRequest) *pb.RateLimitResponse {
+
+	checkServiceErr(request.Domain != "", "rate limit domain must not be empty")
+	checkServiceErr(len(request.Descriptors) != 0, "rate limit descriptor list must not be empty")
+
+	snappedConfig := this.GetCurrentConfig()
+	checkServiceErr(snappedConfig != nil, "no rate limit configuration loaded")
+
+	limitsToReset := make([]*config.RateLimit, len(request.Descriptors))
+	for i, descriptor := range request.Descriptors {
+		if logger.IsLevelEnabled(logger.DebugLevel) {
+			var descriptorEntryStrings []string
+			for _, descriptorEntry := range descriptor.GetEntries() {
+				descriptorEntryStrings = append(
+					descriptorEntryStrings,
+					fmt.Sprintf("(%s=%s)", descriptorEntry.Key, descriptorEntry.Value),
+				)
+			}
+			logger.Debugf("got descriptor: %s", strings.Join(descriptorEntryStrings, ","))
+		}
+		limitsToReset[i] = snappedConfig.GetLimit(ctx, request.Domain, descriptor)
+		if logger.IsLevelEnabled(logger.DebugLevel) {
+			if limitsToReset[i] == nil {
+				logger.Debugf("descriptor does not match any limit, no limits applied")
+			} else {
+				logger.Debugf(
+					"applying limit: %d requests per %s",
+					limitsToReset[i].Limit.RequestsPerUnit,
+					limitsToReset[i].Limit.Unit.String(),
+				)
+			}
+		}
+	}
+
+	responseDescriptorStatuses := this.cache.DoLimit(ctx, request, limitsToReset)
+	assert.Assert(len(limitsToReset) == len(responseDescriptorStatuses))
+
+	response := &pb.RateLimitResponse{}
+	response.Statuses = make([]*pb.RateLimitResponse_DescriptorStatus, len(request.Descriptors))
+	finalCode := pb.RateLimitResponse_OK
+	for i, descriptorStatus := range responseDescriptorStatuses {
+		response.Statuses[i] = descriptorStatus
+		if descriptorStatus.Code == pb.RateLimitResponse_OVER_LIMIT {
+			finalCode = descriptorStatus.Code
+		}
+	}
+
+	response.OverallCode = finalCode
+	return response
 }
 
 func (this *service) GetLegacyService() RateLimitLegacyServiceServer {

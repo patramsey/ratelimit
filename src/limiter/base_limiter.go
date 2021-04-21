@@ -1,14 +1,15 @@
 package limiter
 
 import (
+	"math"
+	"math/rand"
+
 	"github.com/coocood/freecache"
-	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
 	"github.com/envoyproxy/ratelimit/src/assert"
 	"github.com/envoyproxy/ratelimit/src/config"
 	"github.com/envoyproxy/ratelimit/src/utils"
+	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 	logger "github.com/sirupsen/logrus"
-	"math"
-	"math/rand"
 )
 
 type BaseRateLimiter struct {
@@ -63,6 +64,14 @@ func (this *BaseRateLimiter) IsOverLimitWithLocalCache(key string) bool {
 		}
 	}
 	return false
+}
+
+// Generates response descriptor status based on cache key, over the limit with local cache, over the limit and
+// near the limit thresholds. Thresholds are checked in order and are mutually exclusive.
+func (this *BaseRateLimiter) GetResponseDescriptorStatusReset(key string) *pb.RateLimitResponse_DescriptorStatus {
+
+	return this.generateResponseDescriptorStatus(pb.RateLimitResponse_OK, nil, 0)
+
 }
 
 // Generates response descriptor status based on cache key, over the limit with local cache, over the limit and

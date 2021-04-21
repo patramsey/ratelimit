@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	pb_struct "github.com/envoyproxy/go-control-plane/envoy/extensions/common/ratelimit/v3"
-	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
 	stats "github.com/lyft/gostats"
+	pb_struct "github.com/patramsey/go-control-plane/envoy/extensions/common/ratelimit/v3"
+	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 	logger "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"gopkg.in/yaml.v2"

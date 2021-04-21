@@ -28,7 +28,7 @@ import (
 
 	logger "github.com/sirupsen/logrus"
 
-	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
+	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 
 	"github.com/envoyproxy/ratelimit/src/config"
 	"github.com/envoyproxy/ratelimit/src/limiter"
@@ -124,6 +124,28 @@ func (this *rateLimitMemcacheImpl) DoLimit(
 	go this.increaseAsync(cacheKeys, isOverLimitWithLocalCache, limits, uint64(hitsAddend))
 	if AutoFlushForIntegrationTests {
 		this.Flush()
+	}
+
+	return responseDescriptorStatuses
+}
+
+//fix this
+func (this *rateLimitMemcacheImpl) DoReset(
+	ctx context.Context,
+	request *pb.RateLimitRequest,
+	limits []*config.RateLimit) []*pb.RateLimitResponse_DescriptorStatus {
+	logger.Debugf("starting cache lookup")
+
+	// request.HitsAddend could be 0 (default value) if not specified by the caller in the RateLimit request.
+	hitsAddend := utils.Max(1, request.HitsAddend)
+	cacheKeys := this.baseRateLimiter.GenerateCacheKeys(request, limits, hitsAddend)
+	// Now fetch the pipeline.
+	responseDescriptorStatuses := make([]*pb.RateLimitResponse_DescriptorStatus,
+		len(request.Descriptors))
+	for i, cacheKey := range cacheKeys {
+
+		responseDescriptorStatuses[i] = this.baseRateLimiter.GetResponseDescriptorStatusReset(cacheKey.Key)
+
 	}
 
 	return responseDescriptorStatuses

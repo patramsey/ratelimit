@@ -4,10 +4,10 @@ import (
 	"math/rand"
 
 	"github.com/coocood/freecache"
-	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
 	"github.com/envoyproxy/ratelimit/src/config"
 	"github.com/envoyproxy/ratelimit/src/limiter"
 	"github.com/envoyproxy/ratelimit/src/utils"
+	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 	logger "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
@@ -25,6 +25,68 @@ type fixedRateLimitCacheImpl struct {
 func pipelineAppend(client Client, pipeline *Pipeline, key string, hitsAddend uint32, result *uint32, expirationSeconds int64) {
 	*pipeline = client.PipeAppend(*pipeline, result, "INCRBY", key, hitsAddend)
 	*pipeline = client.PipeAppend(*pipeline, nil, "EXPIRE", key, expirationSeconds)
+}
+
+func pipelineDelete(client Client, pipeline *Pipeline, key string, result *uint32) {
+	*pipeline = client.PipeAppend(*pipeline, result, "DEL", key)
+}
+
+func (this *fixedRateLimitCacheImpl) DoReset(
+	ctx context.Context,
+	request *pb.RateLimitRequest,
+	limits []*config.RateLimit) []*pb.RateLimitResponse_DescriptorStatus {
+
+	logger.Debugf("starting cache lookup")
+
+	// request.HitsAddend could be 0 (default value) if not specified by the caller in the RateLimit request.
+	hitsAddend := utils.Max(1, request.HitsAddend)
+
+	// First build a list of all cache keys that we are actually going to hit.
+	cacheKeys := this.baseRateLimiter.GenerateCacheKeys(request, limits, hitsAddend)
+
+	results := make([]uint32, len(request.Descriptors))
+	var pipeline, perSecondPipeline Pipeline
+
+	// Now, actually setup the pipeline, skipping empty cache keys.
+	for i, cacheKey := range cacheKeys {
+		if cacheKey.Key == "" {
+			continue
+		}
+
+		logger.Debugf("looking up cache key: %s", cacheKey.Key)
+
+		// Use the perSecondConn if it is not nil and the cacheKey represents a per second Limit.
+		if this.perSecondClient != nil && cacheKey.PerSecond {
+			if perSecondPipeline == nil {
+				perSecondPipeline = Pipeline{}
+			}
+			pipelineDelete(this.perSecondClient, &perSecondPipeline, cacheKey.Key, &results[i])
+		} else {
+			if pipeline == nil {
+				pipeline = Pipeline{}
+			}
+			pipelineDelete(this.client, &pipeline, cacheKey.Key, &results[i])
+		}
+	}
+
+	logger.Debugf("sending deletes")
+	if pipeline != nil {
+		checkError(this.client.PipeDo(pipeline))
+	}
+	if perSecondPipeline != nil {
+		checkError(this.perSecondClient.PipeDo(perSecondPipeline))
+	}
+
+	// Now fetch the pipeline.
+	responseDescriptorStatuses := make([]*pb.RateLimitResponse_DescriptorStatus,
+		len(request.Descriptors))
+	for i, cacheKey := range cacheKeys {
+
+		responseDescriptorStatuses[i] = this.baseRateLimiter.GetResponseDescriptorStatusReset(cacheKey.Key)
+
+	}
+
+	return responseDescriptorStatuses
 }
 
 func (this *fixedRateLimitCacheImpl) DoLimit(

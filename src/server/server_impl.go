@@ -18,7 +18,6 @@ import (
 	"net"
 
 	"github.com/coocood/freecache"
-	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
 	"github.com/envoyproxy/ratelimit/src/limiter"
 	"github.com/envoyproxy/ratelimit/src/settings"
 	"github.com/golang/protobuf/jsonpb"
@@ -26,6 +25,7 @@ import (
 	reuseport "github.com/kavu/go_reuseport"
 	"github.com/lyft/goruntime/loader"
 	stats "github.com/lyft/gostats"
+	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 	logger "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -76,12 +76,17 @@ func NewJsonHandler(svc pb.RateLimitServiceServer) func(http.ResponseWriter, *ht
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		resp, err := svc.ShouldRateLimit(nil, &req)
-		if err != nil {
-			logger.Warnf("error: %s", err.Error())
-			http.Error(writer, err.Error(), http.StatusBadRequest)
-			return
+		var resp *pb.RateLimitResponse
+		var err error
+		if request.Method == "DELETE" {
+			resp, err = svc.ResetRateLimit(nil, &req)
+		} else {
+			resp, err = svc.ShouldRateLimit(nil, &req)
+			if err != nil {
+				logger.Warnf("error: %s", err.Error())
+				http.Error(writer, err.Error(), http.StatusBadRequest)
+				return
+			}
 		}
 
 		logger.Debugf("resp:%s", resp)

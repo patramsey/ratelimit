@@ -15,10 +15,10 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 
-	pb_struct_legacy "github.com/envoyproxy/go-control-plane/envoy/api/v2/ratelimit"
-	pb_struct "github.com/envoyproxy/go-control-plane/envoy/extensions/common/ratelimit/v3"
-	pb_legacy "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
-	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
+	pb_struct_legacy "github.com/patramsey/go-control-plane/envoy/api/v2/ratelimit"
+	pb_struct "github.com/patramsey/go-control-plane/envoy/extensions/common/ratelimit/v3"
+	pb_legacy "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v2"
+	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 )
 
 type TestStatSink struct {

@@ -1,4 +1,4 @@
-module github.com/envoyproxy/ratelimit
+module github.com/patramsey/ratelimit
 
 go 1.14
 
@@ -7,7 +7,7 @@ require (
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/coocood/freecache v1.1.0
-	github.com/envoyproxy/go-control-plane v0.9.7
+	github.com/patramsey/go-control-plane v0.9.7
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/golang/mock v1.4.1
 	github.com/golang/protobuf v1.4.2
