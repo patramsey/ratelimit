@@ -197,3 +197,47 @@ func TestStats_Add(t *testing.T) {
 		"add.__code=not_stored": 1,
 	}, fakeSink.values)
 }
+
+func TestStats_Delete(t *testing.T) {
+	fakeSink := &fakeSink{}
+
+	assert := assert.New(t)
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	client := mock_memcached.NewMockClient(controller)
+	statsStore := stats.NewStore(fakeSink, false)
+
+	sc := memcached.CollectStats(client, statsStore)
+
+	fakeSink.Reset()
+	client.EXPECT().Delete("foo").Return(nil)
+	err := sc.Delete("foo")
+	statsStore.Flush()
+
+	assert.Nil(err)
+	assert.Equal(map[string]uint64{
+		"delete.__code=success": 1,
+	}, fakeSink.values)
+
+	expectedErr := errors.New("expected err")
+
+	fakeSink.Reset()
+	client.EXPECT().Delete("foo").Return(expectedErr)
+	err = sc.Delete("foo")
+	statsStore.Flush()
+
+	assert.Equal(expectedErr, err)
+	assert.Equal(map[string]uint64{
+		"delete.__code=error": 1,
+	}, fakeSink.values)
+
+	fakeSink.Reset()
+	client.EXPECT().Delete("foo").Return(uint64(0), memcache.ErrCacheMiss)
+	err = sc.Delete("foo")
+	statsStore.Flush()
+
+	assert.Equal(memcache.ErrCacheMiss, err)
+	assert.Equal(map[string]uint64{
+		"delete.__code=miss": 1,
+	}, fakeSink.values)
+}
