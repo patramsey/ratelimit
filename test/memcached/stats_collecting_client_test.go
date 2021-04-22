@@ -232,7 +232,7 @@ func TestStats_Delete(t *testing.T) {
 	}, fakeSink.values)
 
 	fakeSink.Reset()
-	client.EXPECT().Delete("foo").Return(uint64(0), memcache.ErrCacheMiss)
+	client.EXPECT().Delete("foo").Return(memcache.ErrCacheMiss)
 	err = sc.Delete("foo")
 	statsStore.Flush()
 
