@@ -1,29 +1,17 @@
 ---
-domain: rl
+domain: messaging
 descriptors:
-  - key: source_cluster
-    value: proxy
+  # Only allow 5 marketing messages a day
+  - key: message_type
+    value: marketing
     descriptors:
-      - key: destination_cluster
-        value: mock
+      - key: to_number
         rate_limit:
-          unit: minute
-          requests_per_unit: 1
-  - key: foo
+          unit: day
+          requests_per_unit: 5
+
+  # Only allow 100 messages a day to any unique phone number
+  - key: to_number
     rate_limit:
-      unit: minute
-      requests_per_unit: 2
-    descriptors:
-      - key: bar
-        rate_limit:
-          unit: minute
-          requests_per_unit: 3
-      - key: bar
-        value: banned
-        rate_limit:
-          unit: minute
-          requests_per_unit: 0
-      - key: baz
-        rate_limit:
-          unit: second
-          requests_per_unit: 1
+      unit: day
+      requests_per_unit: 100
