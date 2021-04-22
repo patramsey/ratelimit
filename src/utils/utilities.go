@@ -1,8 +1,8 @@
 package utils
 
 import (
+	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
 	"github.com/golang/protobuf/ptypes/duration"
-	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 )
 
 // Interface for a time source.

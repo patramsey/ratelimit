@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
+	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
 
 	"github.com/envoyproxy/ratelimit/src/server"
 	mock_v3 "github.com/envoyproxy/ratelimit/test/mocks/rls"

@@ -5,13 +5,13 @@ import (
 	"strings"
 	"sync"
 
+	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
 	"github.com/envoyproxy/ratelimit/src/assert"
 	"github.com/envoyproxy/ratelimit/src/config"
 	"github.com/envoyproxy/ratelimit/src/limiter"
 	"github.com/envoyproxy/ratelimit/src/redis"
 	"github.com/lyft/goruntime/loader"
 	stats "github.com/lyft/gostats"
-	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 	logger "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )

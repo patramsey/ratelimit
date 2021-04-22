@@ -1,8 +1,8 @@
 package limiter
 
 import (
+	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
 	"github.com/envoyproxy/ratelimit/src/config"
-	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 	"golang.org/x/net/context"
 )
 

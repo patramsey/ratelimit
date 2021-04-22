@@ -18,6 +18,7 @@ import (
 	"net"
 
 	"github.com/coocood/freecache"
+	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
 	"github.com/envoyproxy/ratelimit/src/limiter"
 	"github.com/envoyproxy/ratelimit/src/settings"
 	"github.com/golang/protobuf/jsonpb"
@@ -25,7 +26,6 @@ import (
 	reuseport "github.com/kavu/go_reuseport"
 	"github.com/lyft/goruntime/loader"
 	stats "github.com/lyft/gostats"
-	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 	logger "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"

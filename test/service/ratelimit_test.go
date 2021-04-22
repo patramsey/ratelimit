@@ -4,6 +4,7 @@ import (
 	"sync"
 	"testing"
 
+	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
 	"github.com/envoyproxy/ratelimit/src/config"
 	"github.com/envoyproxy/ratelimit/src/redis"
 	ratelimit "github.com/envoyproxy/ratelimit/src/service"
@@ -14,7 +15,6 @@ import (
 	mock_snapshot "github.com/envoyproxy/ratelimit/test/mocks/runtime/snapshot"
 	"github.com/golang/mock/gomock"
 	stats "github.com/lyft/gostats"
-	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )

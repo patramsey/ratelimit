@@ -5,11 +5,11 @@ import (
 	"io/ioutil"
 	"testing"
 
+	pb_struct "github.com/envoyproxy/go-control-plane/envoy/extensions/common/ratelimit/v3"
+	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
+	pb_type "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"github.com/envoyproxy/ratelimit/src/config"
 	"github.com/lyft/gostats"
-	pb_struct "github.com/patramsey/go-control-plane/envoy/extensions/common/ratelimit/v3"
-	pb "github.com/patramsey/go-control-plane/envoy/service/ratelimit/v3"
-	pb_type "github.com/patramsey/go-control-plane/envoy/type/v3"
 	"github.com/stretchr/testify/assert"
 )
 
