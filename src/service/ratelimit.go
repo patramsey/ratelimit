@@ -256,7 +256,7 @@ func (this *service) ResetRateLimitWorker(
 		}
 	}
 
-	responseDescriptorStatuses := this.cache.DoLimit(ctx, request, limitsToReset)
+	responseDescriptorStatuses := this.cache.DoReset(ctx, request, limitsToReset)
 	assert.Assert(len(limitsToReset) == len(responseDescriptorStatuses))
 
 	response := &pb.RateLimitResponse{}
