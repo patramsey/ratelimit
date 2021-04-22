@@ -18,6 +18,9 @@ type statsCollectingClient struct {
 	addNotStored     stats.Counter
 	keysRequested    stats.Counter
 	keysFound        stats.Counter
+	deleteSuccess    stats.Counter
+	deleteMiss       stats.Counter
+	deleteError      stats.Counter
 }
 
 func CollectStats(c Client, scope stats.Scope) Client {
@@ -33,6 +36,9 @@ func CollectStats(c Client, scope stats.Scope) Client {
 		addNotStored:     scope.NewCounterWithTags("add", map[string]string{"code": "not_stored"}),
 		keysRequested:    scope.NewCounter("keys_requested"),
 		keysFound:        scope.NewCounter("keys_found"),
+		deleteSuccess:    scope.NewCounterWithTags("delete", map[string]string{"code": "success"}),
+		deleteMiss:       scope.NewCounterWithTags("delete", map[string]string{"code": "miss"}),
+		deleteError:      scope.NewCounterWithTags("delete", map[string]string{"code": "error"}),
 	}
 }
 
@@ -76,5 +82,18 @@ func (scc statsCollectingClient) Add(item *memcache.Item) error {
 		scc.addError.Inc()
 	}
 
+	return err
+}
+
+func (scc statsCollectingClient) Delete(key string) error {
+	err := scc.c.Delete(key)
+	switch err {
+	case memcache.ErrCacheMiss:
+		scc.deleteMiss.Inc()
+	case nil:
+		scc.deleteSuccess.Inc()
+	default:
+		scc.deleteError.Inc()
+	}
 	return err
 }
