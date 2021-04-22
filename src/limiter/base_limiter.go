@@ -66,6 +66,18 @@ func (this *BaseRateLimiter) IsOverLimitWithLocalCache(key string) bool {
 	return false
 }
 
+// Returns `true` in case local cache is enabled and the delete for the key succeeds for provided cache key, `false` otherwise.
+func (this *BaseRateLimiter) ResetLocalCache(key string) bool {
+	if this.localCache != nil {
+		// Get returns the value or not found error.
+		success := this.localCache.Del([]byte(key))
+		if success == true {
+			return true
+		}
+	}
+	return false
+}
+
 // Generates response descriptor status based on cache key, over the limit with local cache, over the limit and
 // near the limit thresholds. Thresholds are checked in order and are mutually exclusive.
 func (this *BaseRateLimiter) GetResponseDescriptorStatusReset(key string) *pb.RateLimitResponse_DescriptorStatus {

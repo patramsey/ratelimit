@@ -143,6 +143,8 @@ func (this *rateLimitMemcacheImpl) DoReset(
 	responseDescriptorStatuses := make([]*pb.RateLimitResponse_DescriptorStatus,
 		len(request.Descriptors))
 	for i, cacheKey := range cacheKeys {
+
+		this.baseRateLimiter.ResetLocalCache(cacheKey.Key)
 		this.client.Delete(cacheKey.Key)
 		responseDescriptorStatuses[i] = this.baseRateLimiter.GetResponseDescriptorStatusReset(cacheKey.Key)
 

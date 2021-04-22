@@ -54,6 +54,8 @@ func (this *fixedRateLimitCacheImpl) DoReset(
 		}
 
 		logger.Debugf("looking up cache key: %s", cacheKey.Key)
+		//remove from local cache
+		this.baseRateLimiter.ResetLocalCache(cacheKey.Key)
 
 		// Use the perSecondConn if it is not nil and the cacheKey represents a per second Limit.
 		if this.perSecondClient != nil && cacheKey.PerSecond {
