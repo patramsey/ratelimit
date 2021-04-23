@@ -8,6 +8,7 @@ require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/coocood/freecache v1.1.0
 	github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad
+	//github.com/patramsey/go-control-plane v0.9.10
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/golang/mock v1.4.1
 	github.com/golang/protobuf v1.4.3
@@ -28,4 +29,4 @@ require (
 
 replace github.com/envoyproxy/ratelimit => github.com/patramsey/ratelimit v1.4.0
 
-replace github.com/envoyproxy/go-control-plane => github.com/patramsey/go-control-plane v0.9.9
+replace github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad => github.com/patramsey/go-control-plane v0.9.10
