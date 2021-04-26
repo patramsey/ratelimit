@@ -29,4 +29,4 @@ require (
 
 replace github.com/envoyproxy/ratelimit => github.com/patramsey/ratelimit v1.4.0
 
-replace github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad => github.com/patramsey/go-control-plane v0.9.10
+replace github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad => github.com/patramsey/go-control-plane v0.9.12
