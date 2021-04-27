@@ -48,6 +48,7 @@ func main() {
 	dialString := flag.String(
 		"dial_string", "localhost:8081", "url of ratelimit server in <host>:<port> form")
 	domain := flag.String("domain", "", "rate limit configuration domain to query")
+	doReset := flag.Bool("doreset", false, "instead of rate limiting reset a given descriptor")
 	descriptorsValue := descriptorsValue{[]*pb_struct.RateLimitDescriptor{}}
 	flag.Var(
 		&descriptorsValue, "descriptors",
@@ -70,13 +71,26 @@ func main() {
 	for i, v := range descriptorsValue.descriptors {
 		desc[i] = v
 	}
-	response, err := c.ShouldRateLimit(
-		context.Background(),
-		&pb.RateLimitRequest{
-			Domain:      *domain,
-			Descriptors: desc,
-			HitsAddend:  1,
-		})
+
+	var response *pb.RateLimitResponse
+
+	if *doReset {
+		response, err = c.ResetRateLimit(
+			context.Background(),
+			&pb.RateLimitRequest{
+				Domain:      *domain,
+				Descriptors: desc,
+			})
+	} else {
+		response, err = c.ShouldRateLimit(
+			context.Background(),
+			&pb.RateLimitRequest{
+				Domain:      *domain,
+				Descriptors: desc,
+				HitsAddend:  1,
+			})
+	}
+
 	if err != nil {
 		fmt.Printf("request error: %s\n", err.Error())
 		os.Exit(1)

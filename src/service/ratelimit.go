@@ -224,8 +224,8 @@ func (this *service) ResetRateLimit(
 func (this *service) ResetRateLimitWorker(
 	ctx context.Context, request *pb.RateLimitRequest) *pb.RateLimitResponse {
 
-	checkServiceErr(request.Domain != "", "rate limit domain must not be empty")
-	checkServiceErr(len(request.Descriptors) != 0, "rate limit descriptor list must not be empty")
+	checkServiceErr(request.Domain != "", "reset rate limit domain must not be empty")
+	checkServiceErr(len(request.Descriptors) != 0, "reset rate limit descriptor list must not be empty")
 
 	snappedConfig := this.GetCurrentConfig()
 	checkServiceErr(snappedConfig != nil, "no rate limit configuration loaded")
@@ -264,7 +264,7 @@ func (this *service) ResetRateLimitWorker(
 	finalCode := pb.RateLimitResponse_OK
 	for i, descriptorStatus := range responseDescriptorStatuses {
 		response.Statuses[i] = descriptorStatus
-		if descriptorStatus.Code == pb.RateLimitResponse_OVER_LIMIT {
+		if descriptorStatus.Code == pb.RateLimitResponse_UNKNOWN {
 			finalCode = descriptorStatus.Code
 		}
 	}
